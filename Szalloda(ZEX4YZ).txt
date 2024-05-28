@@ -37,6 +37,12 @@ class Szalloda:
         for szoba in self.szobak:
             print(szoba)
 
+    def keress_szoba(self, szobaszam):
+        for szoba in self.szobak:
+            if szoba.szobaszam == szobaszam:
+                return szoba
+        return None
+
 class Foglalas:
     def __init__(self, szalloda):
         self.szalloda = szalloda
@@ -57,8 +63,11 @@ class Foglalas:
             self.foglalasok[szobaszam] = []
 
         self.foglalasok[szobaszam].append(datum)
+        szoba = self.szalloda.keress_szoba(szobaszam)
         if not silent:
             print(f"Szoba {szobaszam} lefoglalva: {datum}")
+            if szoba:
+                print(f"A foglalás költsége: {szoba.ar} Ft")
 
     def felszabadit_szoba(self, szobaszam, datum):
         if szobaszam in self.foglalasok and datum in self.foglalasok[szobaszam]:
