@@ -1,0 +1,147 @@
+from abc import ABC, abstractmethod
+from datetime import datetime
+
+# Szoba absztrakt osztály
+class Szoba(ABC):
+    def __init__(self, ar, szobaszam):
+        self.ar = ar
+        self.szobaszam = szobaszam
+
+    @abstractmethod
+    def __str__(self):
+        pass
+
+class EgyagyasSzoba(Szoba):
+    def __init__(self, ar, szobaszam):
+        super().__init__(ar, szobaszam)
+
+    def __str__(self):
+        return f"Egyágyas szoba {self.szobaszam}: {self.ar} Ft"
+
+class KetagyasSzoba(Szoba):
+    def __init__(self, ar, szobaszam):
+        super().__init__(ar, szobaszam)
+
+    def __str__(self):
+        return f"Kétágyas szoba {self.szobaszam}: {self.ar} Ft"
+
+class Szalloda:
+    def __init__(self, nev):
+        self.nev = nev
+        self.szobak = []
+
+    def hozzad_szoba(self, szoba):
+        self.szobak.append(szoba)
+
+    def listazz_szobak(self):
+        for szoba in self.szobak:
+            print(szoba)
+
+class Foglalas:
+    def __init__(self, szalloda):
+        self.szalloda = szalloda
+        self.foglalasok = {}
+
+    def foglal_szoba(self, szobaszam, datum, silent=False):
+        if not self._datum_ervenyes(datum):
+            if not silent:
+                print(f"A megadott dátum nem érvényes: {datum}")
+            return
+
+        if szobaszam in self.foglalasok:
+            if datum in self.foglalasok[szobaszam]:
+                if not silent:
+                    print(f"Szoba {szobaszam} már foglalt ezen a dátumon: {datum}")
+                return
+        else:
+            self.foglalasok[szobaszam] = []
+
+        self.foglalasok[szobaszam].append(datum)
+        if not silent:
+            print(f"Szoba {szobaszam} lefoglalva: {datum}")
+
+    def felszabadit_szoba(self, szobaszam, datum):
+        if szobaszam in self.foglalasok and datum in self.foglalasok[szobaszam]:
+            self.foglalasok[szobaszam].remove(datum)
+            print(f"Szoba {szobaszam} felszabadítva: {datum}")
+        else:
+            print(f"Szoba {szobaszam} nem volt foglalt ezen a dátumon: {datum}")
+
+    def listazz_foglalasok(self):
+        foglalasok_listaja = []
+
+        for szobaszam, datumok in self.foglalasok.items():
+            for datum in datumok:
+                foglalasok_listaja.append((szobaszam, datum))
+
+        foglalasok_listaja.sort(key=lambda x: datetime.strptime(x[1], "%Y-%m-%d"))
+
+        for szobaszam, datum in foglalasok_listaja:
+            print(f"Szoba {szobaszam} foglalva: {datum}")
+
+    def _datum_ervenyes(self, datum):
+        try:
+            foglalas_datum = datetime.strptime(datum, "%Y-%m-%d")
+            return foglalas_datum > datetime.now()
+        except ValueError:
+            return False
+
+def alapertelmezett_foglalasok(foglalas):
+    foglalas.foglal_szoba(101, "2024-06-01", silent=True)
+    foglalas.foglal_szoba(102, "2024-06-02", silent=True)
+    foglalas.foglal_szoba(103, "2024-06-03", silent=True)
+    foglalas.foglal_szoba(101, "2024-06-04", silent=True)
+    foglalas.foglal_szoba(102, "2024-06-05", silent=True)
+
+def menu():
+    print("\nSzálloda Menü:")
+    print("1. Listázza a szobákat")
+    print("2. Foglaljon szobát")
+    print("3. Mondja le a foglalt szobát")
+    print("4. Listázza a foglalásokat")
+    print("5. Kilépés")
+    return input("Válasszon egy opciót (1-5): ")
+
+if __name__ == "__main__":
+    # Létrehozzuk a szállodát
+    szalloda = Szalloda("Grand Hotel")
+
+    # Szobák hozzáadása a szállodához
+    szalloda.hozzad_szoba(EgyagyasSzoba(15000, 101))
+    szalloda.hozzad_szoba(KetagyasSzoba(20000, 102))
+    szalloda.hozzad_szoba(KetagyasSzoba(22000, 103))
+
+    # Létrehozzuk a foglalás objektumot
+    foglalas = Foglalas(szalloda)
+
+    # Alapértelmezett foglalások
+    alapertelmezett_foglalasok(foglalas)
+
+    # Menüvel való interakció
+    while True:
+        valasztas = menu()
+
+        if valasztas == "1":
+            print("A szálloda szobái:")
+            szalloda.listazz_szobak()
+
+        elif valasztas == "2":
+            szobaszam = int(input("Adja meg a szobaszámot, amit foglalni szeretne: "))
+            datum = input("Adja meg a dátumot (YYYY-MM-DD): ")
+            foglalas.foglal_szoba(szobaszam, datum)
+
+        elif valasztas == "3":
+            szobaszam = int(input("Adja meg a szobaszámot, amit felszabadítani szeretne: "))
+            datum = input("Adja meg a dátumot (YYYY-MM-DD): ")
+            foglalas.felszabadit_szoba(szobaszam, datum)
+
+        elif valasztas == "4":
+            print("Foglalások listája:")
+            foglalas.listazz_foglalasok()
+
+        elif valasztas == "5":
+            print("Kilépés a programból.")
+            break
+
+        else:
+            print("Érvénytelen választás. Próbálja újra.")
